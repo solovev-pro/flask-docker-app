@@ -1,0 +1,14 @@
+venv/
+.venv/
+
+__pycache__/
+*.рус
+
+*.db
+*.sqlite3
+
+.vscode
+.idea/
+
+.DS_store
+Thumbs.db

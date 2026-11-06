@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="margin: 0;">👋 Привет, {{ student_name }}!</h2>
+    <a href="{{ url_for('student_dashboard') }}" style="
+      background: #6c757d;
+      color: white;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    ">📊 Мой прогресс</a>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <div style="background: #fff; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-left: 5px solid #dc3545;">
+      <h4 style="margin-top: 0; color: #333;">🚫 Пропуски</h4>
+      {% if absences %}
+        <ul style="list-style: none; padding: 0; margin: 10px 0 0;">
+          {% for a in absences %}
+            <li style="padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.95rem;">
+              <strong>{{ a.date }}</strong> — {{ a.subject }} {% if a.reason %}({{ a.reason }}){% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p style="color: #666;">Пропусков нет</p>
+      {% endif %}
+    </div>
+
+    <div style="background: #fff; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-left: 5px solid #ffc107;">
+      <h4 style="margin-top: 0; color: #333;">📢 Новости</h4>
+      {% if news %}
+        <ul style="list-style: none; padding: 0; margin: 10px 0 0;">
+          {% for n in news %}
+            <li style="padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.95rem;">
+              <small style="color: #007bff; font-weight: 600;">{{ n.date }}</small><br>
+              <strong style="display: block; margin: 4px 0 4px;">{{ n.title }}</strong>
+              <span style="color: #555; line-height: 1.4;">{{ n.text }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p style="color: #666;">Новостей нет</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Задания -->
+  <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <h3 style="margin-top: 0;">📝 Задания</h3>
+    {% if tasks %}
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+        <thead>
+          <tr style="background: #f8f9fa; text-align: left;">
+            <th style="padding: 10px; border: 1px solid #dee2e6;">Название</th>
+            <th style="padding: 10px; border: 1px solid #dee2e6;">Срок</th>
+            <th style="padding: 10px; border: 1px solid #dee2e6;">Статус</th>
+            <th style="padding: 10px; border: 1px solid #dee2e6; width: 110px; text-align: center;">Действие</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tasks %}
+          <tr>
+            <td style="padding: 10px; border: 1px solid #dee2e6;">{{ t.title }}</td>
+            <td style="padding: 10px; border: 1px solid #dee2e6;">{{ t.deadline }}</td>
+            <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
+              {% if t.status == 'active' %}
+                <span style="background: #ffc107; color: #000; padding: 4px 8px; border-radius: 6px; font-weight: 600;">Активно</span>
+              {% elif t.status == 'done' %}
+                <span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 6px; font-weight: 600;">Готово</span>
+              {% else %}
+                <span style="background: #6c757d; color: white; padding: 4px 8px; border-radius: 6px;">Черновик</span>
+              {% endif %}
+            </td>
+            <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
+              <!-- Ссылка ведёт на тему — там будет видео и задачи -->
+              <a href="/topic/{{ t.id }}" style="background: #007bff; color: white; padding: 6px 12px; text-decoration: none; border-radius: 6px; font-size: 0.85rem;">Перейти</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p style="color: #666;">Заданий пока нет — следите за новостями!</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

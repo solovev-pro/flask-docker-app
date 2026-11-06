@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(135deg, #eef2f5 0%, #ffffff 100%);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+    padding: 32px;
+  }
+
+  h2 {
+    text-align: center;
+    color: #1a1f29;
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+
+  .role-switcher {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .role-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #374151;
+  }
+
+  .role-btn.active {
+    background: #228be6;
+    border-color: #228be6;
+    color: white;
+  }
+
+  .role-btn:hover:not(.active) {
+    border-color: #d1d5db;
+    background: #f3f4f6;
+  }
+
+  /* Поля ввода */
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: #228be6;
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.15);
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: #228be6;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-submit:hover {
+    background: #1c7ed6;
+  }
+
+  /* Скрытые блоки для ролей */
+  .hidden {
+    display: none;
+  }
+
+  .hint-text {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+</style>
+
+<div class="login-container">
+  <h2>Вход в систему</h2>
+  <p class="subtitle">Выберите роль и введите данные для доступа</p>
+
+  <!-- Переключатель ролей -->
+  <div class="role-switcher">
+    <button type="button" class="role-btn active" onclick="setRole('teacher')">Учитель</button>
+    <button type="button" class="role-btn" onclick="setRole('student')">Ученик</button>
+  </div>
+
+  <form id="loginForm" action="/api/login" method="POST">
+    <!-- Скрытое поле роли -->
+    <input type="hidden" id="roleInput" name="role" value="teacher">
+
+    <div class="form-group">
+      <label for="name">Фамилия и имя</label>
+      <input type="text" id="name" name="name" placeholder="..." autocomplete="off" required>
+    </div>
+
+    <!-- Блок полей для учителя -->
+    <div id="teacherFields">
+      <div class="form-group">
+        <label for="region">Регион</label>
+        <select id="region" name="region" onchange="handleRegionChange()" required></select>
+      </div>
+
+      <div class="form-group">
+        <label for="school">Школа</label>
+        <select id="school" name="school" required>
+          <option value="">Сначала выберите регион...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subject">Предмет</label>
+        <select id="subject" name="subject" required>
+          <option value="Русский язык">Русский язык</option>
+          <option value="Литература">Литература</option>
+          <option value="Иностранный язык">Иностранный язык</option>
+          <option value="Математика">Математика</option>
+          <option value="История">История</option>
+          <option value="Биология">Биология</option>
+          <option value="География">География</option>
+          <option value="Изобразительное искусство (ИЗО)">Изобразительное искусство (ИЗО)</option>
+          <option value="Музыка">Музыка</option>
+          <option value="Труд (технология)">Труд (технология)</option>
+          <option value="Физическая культура">Физическая культура</option>
+          <option value="ОБЗР">ОБЗР</option>
+        </select>
+      </div>
+    </div> 
+    <!-- ^^^ ЭТОТ ЗАКРЫВАЮЩИЙ </div> КРИТИЧЕСКИ ВАЖЕН. Он закрывает весь блок teacherFields -->
+
+    <!-- Блок подсказки для ученика -->
+    <div id="studentFields" class="hidden">
+      <p class="hint-text">
+        Если вы ученик, просто введите своё имя. Система найдёт ваш профиль автоматически. Если профиля нет — он будет создан.
+      </p>
+    </div>
+
+    <!-- Кнопка теперь ТОЧНО внутри формы -->
+    <button type="submit" class="btn-submit">Войти в кабинет</button>
+  </form>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    initRegions();
+  });
+
+  function setRole(role) {
+    const roleInput = document.getElementById('roleInput');
+    const teacherFields = document.getElementById('teacherFields');
+    const studentFields = document.getElementById('studentFields');
+    const buttons = document.querySelectorAll('.role-btn');
+
+    roleInput.value = role;
+
+    buttons.forEach(btn => btn.classList.remove('active'));
+    if (role === 'teacher') {
+      buttons[0].classList.add('active');
+      teacherFields.classList.remove('hidden');
+      studentFields.classList.add('hidden');
+    } else {
+      buttons[1].classList.add('active');
+      teacherFields.classList.add('hidden');
+      studentFields.classList.remove('hidden');
+    }
+  }
+
+  async function initRegions() {
+    try {
+      const response = await fetch('/api/regions');
+      const result = await response.json();
+      const regionSelect = document.getElementById('region');
+      regionSelect.innerHTML = '';
+      result.data.forEach(region => {
+        const option = document.createElement('option');
+        option.value = region;
+        option.textContent = region;
+        regionSelect.appendChild(option);
+      });
+      if (result.data.length > 0) {
+        loadSchools(result.data[0]);
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки регионов:', err);
+    }
+  }
+
+  function handleRegionChange() {
+    loadSchools(document.getElementById('region').value);
+  }
+
+  async function loadSchools(regionName) {
+    try {
+      const response = await fetch(`/api/schools?region=${encodeURIComponent(regionName)}`);
+      const result = await response.json();
+      const schoolSelect = document.getElementById('school');
+      schoolSelect.innerHTML = '<option value="">Выберите школу...</option>';
+      result.data.forEach(school => {
+        const option = document.createElement('option');
+        option.value = school;
+        option.textContent = school;
+        schoolSelect.appendChild(option);
+      });
+    } catch (err) {
+      console.error('Ошибка загрузки школ:', err);
+    }
+  }
+</script>
+{% endblock %}

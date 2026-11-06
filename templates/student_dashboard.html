@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+
+    <a href="{{ url_for('student_home') }}" style="display: inline-block; margin-bottom: 16px; background: #007bff; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 0.9rem;">← На главную</a>
+
+    <h2>Личный кабинет ученика: <span style="color: #007bff;">{{ student_name }}</span></h2>
+
+    {% if show_reminder %}
+    <div style="background: #fff3cd; border: 2px solid #ffeeba; padding: 20px; border-radius: 12px; margin-bottom: 30px; color: #856404; font-weight: bold;">
+        ⚠️ {{ reminder_text }}
+        <div style="margin-top: 15px;">
+            <a href="{{ url_for('topic_detail', topic_id=missed_topic_id) }}" style="background: #dc3545; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; display: inline-block;">
+                Восполнить пробел сейчас
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if assigned %}
+    <h3>📮 Задания от учителей:</h3>
+    {% for a in assigned %}
+        <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #f0a500;">
+            <b>{{ a.title }}</b> <span style="color: #888;">— от {{ a.teacher_name }}</span>
+            <a href="{{ url_for('topic_detail', topic_id=a.topic_id) }}" style="background: #f0a500; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 0.9em; font-weight: bold; display: inline-block; margin-top: 8px;">
+                Выполнить
+            </a>
+        </div>
+    {% endfor %}
+    {% endif %}
+
+    <h3 style="margin: 30px 0 20px;">📋 Твоя программа и пропущенные уроки:</h3>
+
+    {% for subject in subjects %}
+        <div style="padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eef2f5; border-left: 5px solid #007bff;">
+            <h4 style="margin-top: 0;">{{ subject.name }}</h4>
+            <ul style="list-style-type: none; padding-left: 0;">
+                {% for topic in subject.topics %}
+                    <li style="padding: 10px; border-bottom: 1px solid #f1f3f5; display: flex; justify-content: space-between; align-items: center;">
+                        <span>{{ topic.title }}</span>
+                        {% if topic.id in student.missed_topics %}
+                            <span style="background: #ffe6e6; color: #cc0000; padding: 5px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">⚠️ Пропущено</span>
+                            <a href="{{ url_for('topic_detail', topic_id=topic.id) }}" style="background: #007bff; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 0.9em; font-weight: bold;">Отработать урок</a>
+                        {% else %}
+                            <span style="background: #e6f9ff; color: #0088cc; padding: 5px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">✅ Аттестован</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+
+</div>
+{% endblock %}

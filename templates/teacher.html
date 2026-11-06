@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет учителя</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f9; color: #333; padding-bottom: 40px; }
+        .navbar { background-color: #fff; padding: 15px 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; gap: 20px; font-size: 14px; font-weight: 500; margin-bottom: 30px; }
+        .nav-link { color: #666; text-decoration: none; }
+        .nav-link.active { color: #d9383a; font-weight: bold; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px; margin-bottom: 25px; }
+        h1 { font-size: 22px; color: #111; margin-bottom: 5px; }
+        .subtitle { font-size: 13px; color: #888; margin-bottom: 8px; }
+        .subject-badge { display: inline-block; background-color: #e8f7ff; color: #007bff; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; border: 1px solid #bce3ff; }
+        h2 { font-size: 16px; color: #222; margin-bottom: 15px; }
+
+        .class-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+        .tab-btn { background: #e9ecef; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; }
+        .tab-btn.active { background: #228be6; color: #fff; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #edf2f7; font-size: 14px; }
+        th { background-color: #fafbfc; color: #666; font-weight: 600; text-transform: uppercase; font-size: 11px; }
+        td b { color: #228be6; font-size: 16px; }
+
+        .task-list-wrapper { display: flex; flex-direction: column; gap: 6px; }
+        .task-item { padding: 6px 12px; background-color: #fafbfc; border-left: 3px solid #228be6; border-radius: 0 4px 4px 0; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+        .task-badge { font-weight: 600; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #fff4e6; color: #d9480f; border: 1px solid #ffe8cc; }
+        .task-badge.skip { background: #fff5f5; color: #c92a2a; border: 1px solid #ffebeb; }
+        .no-task { color: #adb5bd; font-style: italic; font-size: 13px; }
+
+        .form-container { display: flex; flex-direction: column; gap: 15px; }
+        .form-row { display: flex; gap: 15px; }
+        .form-group-field { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .form-group-field label { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; }
+        select, input { padding: 10px 14px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 14px; background: #fff; width: 100%; }
+        
+        .btn-submit { background-color: #228be6; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 500; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-submit:hover { background-color: #1c7ed6; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/logout" class="nav-link">🚪 Выйти из аккаунта</a>
+        <a href="#" class="nav-link active" style="margin-left: auto;">Личный кабинет</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h1>Учитель: {{ teacher_name }}</h1>
+            <div class="subtitle">🏫 Учебное заведение: {{ teacher_school }}</div>
+            <div class="subject-badge">📚 Предмет: {{ teacher_subject }}</div>
+            <div class="class-tabs" id="class-tabs-container"></div>
+            <h2 id="current-class-title">📋 Электронный журнал пропусков</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Ученик</th>
+                        <th style="width: 65%;">История пропусков и выданные задания</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table">
+                    <tr><td colspan="2" style="text-align:center; color:#aaa; padding: 20px;">Загрузка классов...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="assignment-card" style="display: none;">
+            <h2>⚡ Назначить задание по пропуску / опозданию</h2>
+            <div class="form-container">
+                <div class="form-row">
+                    <div class="form-group-field">
+                        <label for="student-selector">Выбрать ученика:</label>
+                        <select id="student-selector"></select>
+                    </div>
+                    <div class="form-group-field">
+                        <label for="skip-type-selector">Что зафиксировать:</label>
+                        <select id="skip-type-selector">
+                            <option value="⏳ Опоздание">Опоздание на урок</option>
+                            <option value="❌ Пропуск урока">Полный пропуск урока</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group-field">
+                        <label for="task-text-input">Задание по теме пропущенного урока:</label>
+                        <select id="task-text-input">
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-submit" onclick="sendAssignment()">Выдать задание</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentClassId = null;
+
+        async function loadClasses() {
+            try {
+                const response = await fetch('/api/teacher/classes');
+                const result = await response.json();
+                const tabsContainer = document.getElementById('class-tabs-container');
+                tabsContainer.innerHTML = '';
+
+                if (!result.data || result.data.length === 0) {
+                    document.getElementById('students-table').innerHTML = '<tr><td colspan="2" style="text-align:center; color:#aaa; padding: 20px;">Для вашей школы пока нет классов.</td></tr>';
+                    return;
+                }
+
+                result.data.forEach((schoolClass, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+                    btn.innerText = schoolClass.name;
+                    btn.onclick = () => selectClass(schoolClass.id, schoolClass.name, btn);
+                    tabsContainer.appendChild(btn);
+                    if (index === 0) { selectClass(schoolClass.id, schoolClass.name, btn); }
+                });
+                
+                loadTopics();
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadTopics() {
+            try {
+                const response = await fetch('/api/teacher/topics');
+                const result = await response.json();
+                const topicSelector = document.getElementById('task-text-input');
+                topicSelector.innerHTML = '';
+                
+                result.data.forEach(topic => {
+                    topicSelector.insertAdjacentHTML('beforeend', `<option value="${topic}">${topic}</option>`);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function selectClass(classId, className, element) {
+            currentClassId = classId;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('current-class-title').innerText = `📋 Ученики: ${className}`;
+            document.getElementById('assignment-card').style.display = 'block';
+            loadStudentsAndPopulateForm();
+        }
+
+        async function loadStudentsAndPopulateForm() {
+            if (!currentClassId) return;
+            try {
+                const response = await fetch(`/api/teacher/students?class_id=${currentClassId}`);
+                const result = await response.json();
+                const tableBody = document.getElementById('students-table');
+                tableBody.innerHTML = '';
+                const studentSelector = document.getElementById('student-selector');
+                studentSelector.innerHTML = '';
+
+                result.data.forEach(student => {
+                    let tasksHtml = '<div class="task-list-wrapper">';
+                    if (student.tasks.length === 0) {
+                        tasksHtml += `<span class="no-task">Нет зафиксированных пропусков</span>`;
+                    } else {
+                        student.tasks.forEach(task => {
+                            let isSkip = task.skip_type.includes("❌") || task.skip_type.includes("Пропуск");
+                            let badgeClass = isSkip ? "task-badge skip" : "task-badge";
+                            tasksHtml += `
+                                <div class="task-item">
+                                    <span>${task.task_text}</span>
+                                    <span class="${badgeClass}">${task.skip_type}</span>
+                                </div>`;
+                        });
+                    }
+                    tasksHtml += '</div>';
+                const row = `<tr><td><b>${student.name}</b></td><td>${tasksHtml}</td></tr>`;
+                tableBody.insertAdjacentHTML('beforeend', row);
+
+                const option = `<option value="${student.id}">${student.name}</option>`;
+                studentSelector.insertAdjacentHTML('beforeend', option);
+            });
+        } catch (err) { console.error(err); }
+    }
+
+    async function sendAssignment() {
+        const studentId = document.getElementById('student-selector').value;
+        const skipType = document.getElementById('skip-type-selector').value;
+        const taskText = document.getElementById('task-text-input').value;
+
+        try {
+            const response = await fetch('/api/teacher/assignment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: studentId, skip_type: skipType, task_text: taskText })
+            });
+            if (response.ok) { await loadStudentsAndPopulateForm(); }
+        } catch (err) { console.error(err); }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => { loadClasses(); });
+    setInterval(loadStudentsAndPopulateForm, 5000);
+
+    fetch('/api/teacher/topics')
+  .then(r => r.json())
+  .then(result => {
+      const select = document.getElementById('topic-select');
+      select.innerHTML = '<option value="">Выберите тему...</option>';
+      result.data.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = t.title;
+          select.appendChild(opt);
+      });
+  });
+
+async function sendAssignment(studentId) {
+    const topicId = document.getElementById('topic-select').value;
+    const comment = document.getElementById('task-comment')?.value || '';
+
+    const res = await fetch('/api/teacher/assignment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId, topic_id: topicId, task_text: comment })
+    });
+    const data = await res.json();
+    alert(data.status === 'success' ? 'Задание отправлено!' : data.message);
+}
+</script>
+</body>
+</html>

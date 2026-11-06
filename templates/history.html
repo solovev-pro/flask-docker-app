@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📜 История решений: {{ student_name }}</h2>
+
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+  <thead>
+    <tr style="background: #f8f9fa;">
+      <th>Время</th>
+      <th>Задача</th>
+      <th>Твой ответ</th>
+      <th>Результат</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for sub in submissions %}
+    <tr>
+      <td>{{ sub.timestamp }}</td>
+      <td style="white-space: nowrap; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+        {{ sub.task_text }}
+      </td>
+      <td>{{ sub.answer }}</td>
+      <td style="color: {% if sub.correct %}#155724{% else %}#721c24{% endif %}; font-weight: bold;">
+        {% if sub.correct %}✅ Верно{% else %}❌ Ошибка{% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4">Пока нет решений</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p style="margin-top: 20px;">
+  <a href="{{ url_for('student_dashboard') }}" style="padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">← Назад в кабинет</a>
+</p>
+{% endblock %}
